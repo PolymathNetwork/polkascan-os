@@ -1,6 +1,6 @@
 [submodule "harvester"]
 	path = harvester
-	url = https://github.com/polkascan/polkascan-pre-harvester.git
+	url = https://github.com/polymathnetwork/polkascan-pre-harvester.git
 [submodule "explorer-api"]
 	path = explorer-api
 	url = https://github.com/polkascan/polkascan-pre-explorer-api.git
