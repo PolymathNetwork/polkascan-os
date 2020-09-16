@@ -11,19 +11,17 @@ services:
     command: ./start.sh
     environment:
       - PYTHONPATH=/usr/src/app
-      - ENVIRONMENT=prod
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
-      - DB_NAME=polkascan
-      - SUBSTRATE_RPC_URL=http://substrate-node:9933/
       - SUBSTRATE_ADDRESS_TYPE=42
-      - TYPE_REGISTRY=kusama
-      - SUBSTRATE_METADATA_VERSION=9
+      - TYPE_REGISTRY=polymesh
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
     depends_on:
       - mysql
-      - substrate-node
 
   harvester-api:
     build: harvester/.
@@ -36,21 +34,20 @@ services:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
       - PYTHONPATH=/usr/src/app:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
-      - ENVIRONMENT=prod
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
-      - DB_NAME=polkascan
-      - SUBSTRATE_RPC_URL=http://substrate-node:9933/
-      - TYPE_REGISTRY=kusama
+      - TYPE_REGISTRY=polymesh
       - SUBSTRATE_ADDRESS_TYPE=42
-      - SUBSTRATE_METADATA_VERSION=9
+      - SUBSTRATE_STORAGE_INDICES=Accounts
       - NEW_SESSION_EVENT_HANDLER=True
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
     depends_on:
       - redis
       - mysql
-      - substrate-node
 
   harvester-worker:
     build: harvester/.
@@ -98,41 +95,24 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=polkascan
 
-  substrate-node:
-    image: polkasource/substrate-client:kusama-latest
-    hostname: substrate-node
-    volumes:
-      - 'substrate-data:/data'
-    ports:
-      - '30333:30333'
-      - '9933:9933'
-      - '9944:9944'
-    command: --dev --rpc-external --ws-external --rpc-cors=all --pruning=archive
-
   explorer-gui:
     image: polkascan/pre-explorer-gui:latest
     build:
       context: explorer-gui/.
       args:
-        NETWORK_NAME: Kusama Dev
-        NETWORK_ID: kusama
-        NETWORK_TYPE: pre
-        CHAIN_TYPE: relay
-        NETWORK_TOKEN_SYMBOL: KSM
-        NETWORK_TOKEN_DECIMALS: 12
-        NETWORK_COLOR_CODE: d32e79
-        API_URL: http://127.0.0.1:8080/api/v1
+      - NETWORK_NAME=${NETWORK_NAME}
+      - NETWORK_ID=${NETWORK_ID}
+      - NETWORK_TYPE=pre
+      - CHAIN_TYPE=relay
+      - NETWORK_TOKEN_SYMBOL=POLYX
+      - NETWORK_TOKEN_DECIMALS=6
+      - NETWORK_COLOR_CODE=d32e79
+      - API_URL=http://127.0.0.1:80/api/v1
     ports:
-      - '8080:80'
+      - '80:80'
     depends_on:
       - harvester-api
       - explorer-api
 
-  polkadot-ui:
-    image: polkasource/substrate-ui:polkadot-latest
-    ports:
-      - '8081:80'
-
 volumes:
   db-data:
-  substrate-data:
