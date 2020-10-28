@@ -52,11 +52,11 @@ git submodule update --init --recursive
 ```
 ### Step 6: During the first run let MySQL initialize (wait for about a minute)
 ```bash
-docker-compose -p kusama -f docker-compose.kusama-full.yml up -d mysql
+docker-compose -p polymesh -f docker-compose-local.yml up -d mysql
 ```
 ### Step 7: Then build the other docker containers
 ```bash
-docker-compose -p kusama -f docker-compose.kusama-full.yml up --build
+docker-compose -p polymesh -f docker-compose-local.yml up --build
 ```
 
 ## Links to applications
