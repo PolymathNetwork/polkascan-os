@@ -2,16 +2,14 @@ version: '3'
 
 services:
   explorer-api:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-api:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-explorer-api:latest
     hostname: explorer-api
-    ports:
-      - 8000:8000
     links:
       - redis
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-explorer
+        awslogs-group: alcyone-explorer
         awslogs-region: us-east-2
         awslogs-stream-prefix: explorer-api
     volumes:
@@ -32,7 +30,7 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
   
   harvester-api:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-harvester:latest
     hostname: harvester-api
     volumes:
       - "/usr/src/app"
@@ -42,7 +40,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-harvester
+        awslogs-group: alcyone-harvester
         awslogs-region: us-east-2
         awslogs-stream-prefix: harvester-api
     environment:
@@ -62,22 +60,22 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
       
   harvester-worker:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-harvester:latest
     volumes:
       - "/usr/src/app"
-    command: celery -A app.tasks worker --concurrency=8 --loglevel=INFO
+    command: celery -A app.tasks worker --concurrency=2 --loglevel=INFO
     links:
       - redis
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-harvester
+        awslogs-group: alcyone-harvester
         awslogs-region: us-east-2
         awslogs-stream-prefix: worker
     environment: *env
 
   harvester-beat:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-harvester:latest
     volumes:
       - "/usr/src/app"
       - "/usr/src/app/data"
@@ -87,13 +85,13 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-harvester
+        awslogs-group: alcyone-harvester
         awslogs-region: us-east-2
         awslogs-stream-prefix: beat
     environment: *env
 
   harvester-monitor:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-harvester:latest
     ports:
       - "5555:5555"
     links:
@@ -102,7 +100,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-harvester
+        awslogs-group: alcyone-harvester
         awslogs-region: us-east-2
         awslogs-stream-prefix: monitor
         
@@ -114,12 +112,12 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-explorer
+        awslogs-group: alcyone-explorer
         awslogs-region: us-east-2
         awslogs-stream-prefix: redis
 
   explorer-gui:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-gui:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyone-explorer-gui:latest
     ports:
       - '80:80'
     links:
@@ -137,7 +135,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: alcyon-explorer
+        awslogs-group: alcyone-explorer
         awslogs-region: us-east-2
         awslogs-stream-prefix: explorer-gui
 

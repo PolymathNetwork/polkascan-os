@@ -2,7 +2,7 @@ version: '3'
 
 services:
   explorer-api:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-explorer-api:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-explorer:latest
     hostname: explorer-api
     links:
       - redis
@@ -30,7 +30,7 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
   
   harvester-api:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-harvester:latest
     hostname: harvester-api
     volumes:
       - "/usr/src/app"
@@ -60,10 +60,10 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
       
   harvester-worker:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-harvester:latest
     volumes:
       - "/usr/src/app"
-    command: celery -A app.tasks worker --concurrency=8 --loglevel=INFO
+    command: celery -A app.tasks worker --concurrency=2 --loglevel=INFO
     links:
       - redis
     logging:
@@ -75,7 +75,7 @@ services:
     environment: *env
 
   harvester-beat:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-harvester:latest
     volumes:
       - "/usr/src/app"
       - "/usr/src/app/data"
@@ -91,7 +91,7 @@ services:
     environment: *env
 
   harvester-monitor:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-harvester:latest
     ports:
       - "5555:5555"
     links:
@@ -117,7 +117,7 @@ services:
         awslogs-stream-prefix: redis
 
   explorer-gui:
-    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-explorer-gui:latest
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/staging-explorer-gui:latest
     ports:
       - '80:80'
     links:
