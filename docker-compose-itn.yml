@@ -1,0 +1,164 @@
+version: '3'
+
+services:
+  explorer-api:
+    build:
+      context: .
+      dockerfile: explorer-api/Dockerfile
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-api:latest
+    hostname: explorer-api
+    ports:
+      - 8000:8000
+    links:
+      - redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-explorer
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: explorer-api
+    volumes:
+      - '/usr/src/app'
+    command: ./explorer-api/start.sh
+    environment: &env
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/usr/src/app/explorer-api:/usr/src/app/harvester:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
+      - TYPE_REGISTRY=polymesh
+      - SUBSTRATE_ADDRESS_TYPE=12
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
+
+  harvester-api:
+    build:
+      context: .
+      dockerfile: harvester/Dockerfile
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    hostname: harvester-api
+    volumes:
+      - '/usr/src/app'
+    command: ./harvester/start.sh
+    links:
+      - redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: harvester-api
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/usr/src/app/harvester:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
+      - TYPE_REGISTRY=polymesh
+      - SUBSTRATE_ADDRESS_TYPE=12
+      - SUBSTRATE_STORAGE_INDICES=Accounts
+      - NEW_SESSION_EVENT_HANDLER=True
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
+
+  harvester-worker:
+    build:
+      context: .
+      dockerfile: harvester/Dockerfile
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    volumes:
+      - '/usr/src/app'
+    command: bash -c "cd harvester && celery -A app.tasks worker --concurrency=8 --loglevel=INFO"
+    links:
+      - redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: worker
+    environment: *env
+
+  harvester-beat:
+    build:
+      context: .
+      dockerfile: harvester/Dockerfile
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    volumes:
+      - '/usr/src/app'
+      - '/usr/src/app/data'
+    links:
+      - redis
+    command: bash -c "cd harvester && celery -A app.tasks beat --loglevel=INFO  --schedule='data/celerybeat-schedule' --pidfile='data/celerybeat.pid' "
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: beat
+    environment: *env
+
+  harvester-monitor:
+    build:
+      context: .
+      dockerfile: harvester/Dockerfile
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    ports:
+      - "5555:5555"
+    links:
+      - redis
+    command: bash -c "cd harvester && flower -A app.tasks --port=5555 --broker=redis://redis:6379/0"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: monitor
+    environment: *env
+
+  redis:
+    image: redis:3.2.11
+    ports:
+      - 6379:6379
+    hostname: redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-explorer
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: redis
+
+  explorer-gui:
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-gui:latest
+    ports:
+      - '80:80'
+    links:
+      - explorer-api
+      - harvester-api
+    environment:
+      - NETWORK_NAME=${NETWORK_NAME}
+      - NETWORK_ID=${NETWORK_ID}
+      - NETWORK_TYPE=pre
+      - CHAIN_TYPE=relay
+      - NETWORK_TOKEN_SYMBOL=POLYX
+      - NETWORK_TOKEN_DECIMALS=6
+      - NETWORK_COLOR_CODE=d32e79
+      - API_URL=http://127.0.0.1:80/api/v1
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: alcyon-explorer
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: explorer-gui
+
+volumes:
+  db-data:
+
+networks:
+  host:
