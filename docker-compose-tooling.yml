@@ -2,9 +2,6 @@ version: '3'
 
 services:
   explorer-api:
-    build:
-      context: .
-      dockerfile: explorer-api/Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-explorer:latest
     hostname: explorer-api
     ports:
@@ -19,11 +16,11 @@ services:
         awslogs-stream-prefix: explorer-api
     volumes:
       - '/usr/src/app'
-    command: ./explorer-api/start.sh
+    command: ./start.sh
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
-      - PYTHONPATH=/usr/src/app/explorer-api:/usr/src/app/harvester:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
+      - PYTHONPATH=/usr/src/app
       - TYPE_REGISTRY=polymesh
       - SUBSTRATE_ADDRESS_TYPE=42
       - ENVIRONMENT=${ENVIRONMENT}
@@ -33,16 +30,13 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
-
+  
   harvester-api:
-    build:
-      context: .
-      dockerfile: harvester/Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     hostname: harvester-api
     volumes:
-      - '/usr/src/app'
-    command: ./harvester/start.sh
+      - "/usr/src/app"
+    command: ./start.sh
     links:
       - redis
     logging:
@@ -54,7 +48,7 @@ services:
     environment: &env
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
-      - PYTHONPATH=/usr/src/app/harvester:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
+      - PYTHONPATH=/usr/src/app
       - TYPE_REGISTRY=polymesh
       - SUBSTRATE_ADDRESS_TYPE=42
       - SUBSTRATE_STORAGE_INDICES=Accounts
@@ -66,15 +60,12 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
-
+      
   harvester-worker:
-    build:
-      context: .
-      dockerfile: harvester/Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     volumes:
-      - '/usr/src/app'
-    command: bash -c "cd harvester && celery -A app.tasks worker --concurrency=2 --loglevel=INFO"
+      - "/usr/src/app"
+    command: celery -A app.tasks worker --concurrency=2 --loglevel=INFO
     links:
       - redis
     logging:
@@ -86,16 +77,13 @@ services:
     environment: *env
 
   harvester-beat:
-    build:
-      context: .
-      dockerfile: harvester/Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     volumes:
-      - '/usr/src/app'
-      - '/usr/src/app/data'
+      - "/usr/src/app"
+      - "/usr/src/app/data"
     links:
       - redis
-    command: bash -c "cd harvester && celery -A app.tasks beat --loglevel=INFO  --schedule='data/celerybeat-schedule' --pidfile='data/celerybeat.pid' "
+    command: celery -A app.tasks beat --loglevel=INFO  --schedule="data/celerybeat-schedule" --pidfile="data/celerybeat.pid"
     logging:
       driver: awslogs
       options:
@@ -105,23 +93,19 @@ services:
     environment: *env
 
   harvester-monitor:
-    build:
-      context: .
-      dockerfile: harvester/Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     ports:
       - "5555:5555"
     links:
       - redis
-    command: bash -c "cd harvester && flower -A app.tasks --port=5555 --broker=redis://redis:6379/0"
+    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
     logging:
       driver: awslogs
       options:
         awslogs-group: tooling-harvester
         awslogs-region: us-east-2
         awslogs-stream-prefix: monitor
-    environment: *env
-
+        
   redis:
     image: redis:3.2.11
     ports:
