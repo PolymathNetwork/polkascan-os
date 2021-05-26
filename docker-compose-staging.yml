@@ -2,6 +2,7 @@ version: '3'
 
 services:
   explorer-api:
+    build: pm-explorer-api/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-explorer-api:latest
     hostname: explorer-api
     links:
@@ -30,6 +31,7 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
   
   harvester-api:
+    build: pm-harvester/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     hostname: harvester-api
     volumes:
@@ -60,6 +62,7 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
       
   harvester-worker:
+    build: pm-harvester/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     volumes:
       - "/usr/src/app"
@@ -75,6 +78,7 @@ services:
     environment: *env
 
   harvester-beat:
+    build: pm-harvester/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     volumes:
       - "/usr/src/app"
@@ -91,6 +95,7 @@ services:
     environment: *env
 
   harvester-monitor:
+    build: pm-harvester/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-harvester:latest
     ports:
       - "5555:5555"
@@ -117,6 +122,7 @@ services:
         awslogs-stream-prefix: redis
 
   explorer-gui:
+    build: pm-explorer-gui/.
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/tooling-explorer-gui:latest
     ports:
       - '80:80'
