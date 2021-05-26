@@ -2,6 +2,9 @@ version: '3'
 
 services:
   explorer-api:
+    build:
+      context: pm-explorer-api/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-api:latest
     hostname: explorer-api
     ports:
@@ -32,6 +35,9 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
   
   harvester-api:
+    build:
+      context: pm-harvester/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     hostname: harvester-api
     volumes:
@@ -62,6 +68,9 @@ services:
       - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
       
   harvester-worker:
+    build:
+      context: pm-harvester/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     volumes:
       - "/usr/src/app"
@@ -77,6 +86,9 @@ services:
     environment: *env
 
   harvester-beat:
+    build:
+      context: pm-harvester/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     volumes:
       - "/usr/src/app"
@@ -93,6 +105,9 @@ services:
     environment: *env
 
   harvester-monitor:
+    build:
+      context: pm-harvester/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     ports:
       - "5555:5555"
@@ -119,6 +134,9 @@ services:
         awslogs-stream-prefix: redis
 
   explorer-gui:
+    build:
+      context: pm-explorer-gui/
+      dockerfile: Dockerfile
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/alcyon-explorer-gui:latest
     ports:
       - '80:80'

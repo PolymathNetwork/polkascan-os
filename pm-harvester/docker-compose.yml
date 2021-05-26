@@ -1,0 +1,91 @@
+version: "3"
+
+services:
+  harvester-api:
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    hostname: harvester-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - "/usr/src/app"
+    command: ./start.sh
+    links:
+      - redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: polymesh-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: harvester-api
+    environment: &env
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/usr/src/app
+      - TYPE_REGISTRY=polymesh
+      - SUBSTRATE_ADDRESS_TYPE=42
+      - SUBSTRATE_STORAGE_INDICES=Accounts
+      - NEW_SESSION_EVENT_HANDLER=True
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=${SUBSTRATE_RPC_URL}
+      
+  harvester-worker:
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    volumes:
+      - "/usr/src/app"
+    command: celery -A app.tasks worker --concurrency=4 --loglevel=INFO
+    links:
+      - redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: polymesh-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: worker
+    environment: *env
+
+  harvester-beat:
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    volumes:
+      - "/usr/src/app"
+      - "/usr/src/app/data"
+    links:
+      - redis
+    command: celery -A app.tasks beat --loglevel=INFO  --schedule="data/celerybeat-schedule" --pidfile="data/celerybeat.pid"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: polymesh-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: beat
+    environment: *env
+
+  harvester-monitor:
+    image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
+    ports:
+      - "5555:5555"
+    links:
+      - redis
+    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: polymesh-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: monitor
+
+  redis:
+    image: redis:3.2.11
+    ports:
+      - 6379:6379
+    hostname: redis
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: polymesh-harvester
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: redis

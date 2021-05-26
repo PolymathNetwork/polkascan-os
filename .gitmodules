@@ -1,9 +1,3 @@
-[submodule "harvester"]
-	path = harvester
-	url = https://github.com/polymathnetwork/polkascan-pre-harvester.git
-[submodule "explorer-api"]
-	path = explorer-api
-	url = https://github.com/PolymathNetwork/polkascan-pre-explorer-api.git
 [submodule "explorer-gui"]
-	path = explorer-gui
-	url = https://github.com/PolymathNetwork/polkascan-pre-explorer-gui.git
+	path = pm-explorer-gui/explorer-gui
+	url = https://github.com/polkascan/polkascan-explorer-gui.git

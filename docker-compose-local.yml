@@ -3,11 +3,11 @@ version: '3.2'
 services:
 
   explorer-api:
-    build: explorer-api/.
+    build: pm-explorer-api/.
     image: polkascan/pre-explorer-api:latest
     hostname: explorer-api
     volumes:
-      - './explorer-api:/usr/src/app'
+      - './pm-explorer-api:/usr/src/app'
     command: ./start.sh
     environment:
       - PYTHONPATH=/usr/src/app
@@ -24,7 +24,7 @@ services:
       - mysql
 
   harvester-api:
-    build: harvester/.
+    build: pm-harvester/.
     image: polkascan/pre-harvester:latest
     hostname: harvester-api
     volumes:
@@ -50,7 +50,7 @@ services:
       - mysql
 
   harvester-worker:
-    build: harvester/.
+    build: pm-harvester/.
     image: polkascan/pre-harvester:latest
     volumes:
       - './harvester:/usr/src/app'
@@ -61,7 +61,7 @@ services:
       - mysql
 
   harvester-beat:
-    build: harvester/.
+    build: pm-harvester/.
     image: polkascan/pre-harvester:latest
     volumes:
       - './harvester:/usr/src/app'
@@ -72,7 +72,7 @@ services:
       - redis
 
   harvester-monitor:
-    build: harvester/.
+    build: pm-harvester/.
     image: polkascan/pre-harvester:latest
     ports:
       - '5555:5555'
@@ -98,7 +98,7 @@ services:
   explorer-gui:
     image: polkascan/pre-explorer-gui:latest
     build:
-      context: explorer-gui/.
+      context: pm-explorer-gui/.
       args:
       - NETWORK_NAME=${NETWORK_NAME}
       - NETWORK_ID=${NETWORK_ID}
