@@ -3,8 +3,8 @@ export DB_HOST=mysql
 export DB_PORT=3306
 export DB_USERNAME=root
 export DB_PASSWORD=root
-export DB_NAME=polkascan
-export SUBSTRATE_RPC_URL=http://78.47.38.110:9933
+export DB_NAME=polymesh-harvester
+export SUBSTRATE_RPC_URL=http://host.docker.internal:9933
 export NETWORK_NAME=TOOLING
 export NETWORK_ID=TOOLING
 
